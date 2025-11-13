@@ -64,6 +64,7 @@ If you want to build something using this project’s structure, please reach ou
 
 ## 💜 Support
 Extension Store Page:
+
 👉 [Chrome Web Store](https://chromewebstore.google.com/detail/uswitch-reddit-accounts/phgceelfckbblkoenaaajalniclklcia?authuser=0&hl=en)
 
 👉 [Mozilla Web Store](https://addons.mozilla.org/tr/firefox/addon/uswitch-reddit-accounts/)
