@@ -1,73 +1,58 @@
-# Xzen ReddSwitcher
+# uSwitch: Reddit Accounts
+> A simple browser extension that lets you switch between your Reddit accounts with a single click fastly & private.
 
-![Xzen ReddSwitcher Logo](new_icon.png)
+# ✨ Overview
+uSwitch securely saves and restores your reddit_session cookies right inside your browser.
+No servers. No trackers. No logins required.
 
-Simple Chrome extension to switch between your Reddit accounts in one click.
+# 🔐 Privacy First
+> Local only: **All data stays in your computer's local storage.** 
+> Encrypted Protection: Your session cookies **are protected using AES-GCM encryption.**
+> No tracking: **We never send or collect anything remotely, We never keep logs or anything**
+> Quick switch: Jump between accounts fastly **without re-logging in**
 
----
+# ⚙️ Features
+🗂 Session Manager: Rename saved accounts, Hide, Delete even re-Order them!
+🌒 Dark UI: A clean minimal dark theme for comfortable use.
+🔑 Auto Encryption: Keys are auto-generated and securely stored.
 
-## 📒 Description
+# 🚀 Installation
 
-Xzen ReddSwitcher saves and restores your `reddit_session` cookie locally, encrypted in your browser storage, so you never have to log out and back in again.
+> Clone or download this repository:
+> git clone https://github.com/LXRylex/Xzen-Reddit-Account-Switcher
 
-## 🔒 Privacy
+> Open your browser’s extensions page
+> chrome://extensions (or about:debugging#/runtime/this-firefox for Firefox)
 
-* **Local only**: All session data and encryption keys stay in your browser. No servers, no external calls.
-* **Encrypted**: Your cookie values are secured with AES-GCM encryption.
-* **No tracking**: We don’t collect or transmit any personal information or usage data.
-* **Right click switch**: for easier access to switch between saved accounts
+> Enable Developer Mode.
+> Click Load Unpacked and select the project folder.
+> Pin uSwtch to your toolbar for easy access.
 
-## ⚙️ Features
+# 📦 Usage
 
-* **One-click swaps**: Instantly switch between saved Reddit accounts.
-* **Manage sessions**: Rename, hide (with eye/𓂋 icons), or delete any entry.
-* **Dark-themed UI**: For people who likes dark mode
-* **Auto encryption**: Keys and data are generated and stored automatically.
+> Open the popup from the toolbar.
+> Add a label and click Save to store your current Reddit session.
+> Click Switch to swap to another saved account.
+> Use ✏️ to rename, 👁/𓂋 to hide or reveal, or 🗑 to delete.
 
-## 🚀 Installation
-
-1. Clone or download this repo:
-
-   ```bash
-   git clone https://github.com/your-username/xzen-reddswitcher.git
-   ```
-2. Open Chrome and go to `chrome://extensions`.
-3. Enable **Developer mode** (top right).
-4. Click **Load unpacked** and select the project folder.
-5. Pin the **Xzen ReddSwitcher** icon to your toolbar.
-
-## 📦 Usage
-
-1. Click the extension icon.
-2. Type a label and hit **Save** to store your current Reddit session.
-3. Click **Switch** to swap to another account.
-4. Use **🖊** to rename, **𓂋/👁** to hide/show, or **Delete** to remove an entry.
+## 🧭 Versioning
+Segment	Meaning
+1	Extension version
+7	Month of release
+16	Day of update
 
 ## 🤝 Contributing
+Pull requests and issue reports are always welcome.
+If you want to build something using this project’s structure, please reach out for permission first.
 
-Feel free to open issues or submit pull requests. All contributions are welcome!
+## 💜 Support
+Extension Store Page:
+👉 [Chrome Web Store](https://chromewebstore.google.com/detail/uswitch-reddit-accounts/phgceelfckbblkoenaaajalniclklcia?authuser=0&hl=en)
 
-## Version meanings:
-* 1 = Is for extension's version
-* 7 = Current Month
-* 16 = Updated Day
+👉 [Mozilla Web Store](https://addons.mozilla.org/tr/firefox/addon/uswitch-reddit-accounts/)
 
-## 📝 License
+Patreon:
+~~💫 https://www.patreon.com/c/Yuilix~~ currently off due to shutdown of my bank
 
-© 2024 - 2025 Yuilix / Xzentosia. All rights reserved.
-
-This software and all associated assets are the intellectual property of the author.  
-You may not copy, modify, redistribute, rebrand, or sublicense any part of this project without explicit, written permission.
-
-Unauthorized use - including clones, republishing under a different name, or monetization without approval - is strictly prohibited and may result in legal action.
-
-Brand names such as "Xzentosia", "Xzen" and project published by this author are protected under author-defined terms of use.
-
-You are free to:
-
-* view the source code.
-* make personal use of the code without publishing anywhere publicly without a valid permission.
-
-Extension Store Page: https://chromewebstore.google.com/detail/xzen-reddswitcher/phgceelfckbblkoenaaajalniclklcia
-Patreon: https://www.patreon.com/c/Yuilix
->nothing much in it if you want you can donate its up to you ^-^ also keep in mind i have exams incoming i may not reply as fast as i can but i will try my best
+Donations are optional, I’m just grateful for your support ♥
+(I might be slow to respond during exams, but I’ll always try my best!)
