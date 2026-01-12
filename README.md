@@ -1,3 +1,5 @@
+![Untitled](https://github.com/user-attachments/assets/a2f2dd47-3083-4c22-907f-5f2e213b0de7)
+
 # uSwitch: Reddit Accounts
 > A simple browser extension that lets you switch between your Reddit accounts with a single click fastly & private.
 
