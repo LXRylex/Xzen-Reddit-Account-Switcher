@@ -71,7 +71,8 @@ Extension Store Page:
 
 👉 [Mozilla Web Store](https://addons.mozilla.org/tr/firefox/addon/uswitch-reddit-accounts/)
 
-Patreon: is off due to bank shutdown
+Patreon: https://www.patreon.com/cw/Yuilix
+Buy Me a Coffee: https://buymeacoffee.com/yuilix
 
 Donations are optional, I’m just grateful for your support ♥
 (I might be slow to respond during exams, but I’ll always try my best!)
