@@ -6,13 +6,19 @@ const modal      = document.getElementById("editModal"),
       editInput  = document.getElementById("editInput"),
       confirmBtn = document.getElementById("confirmEdit"),
       cancelBtn  = document.getElementById("cancelEdit"),
-      list       = document.getElementById("accountsList");
+      list       = document.getElementById("accountsList"),
+      reloadAllTabsToggle = document.getElementById("reloadAllTabs");
 
 document.addEventListener("DOMContentLoaded", async () => {
   await initCrypto();
   document.getElementById("saveBtn").onclick = saveAccount;
   confirmBtn.onclick = applyEdit;
   cancelBtn.onclick  = () => modal.classList.add("hidden");
+  const { reloadAllTabs = true } = await chrome.storage.local.get("reloadAllTabs");
+  reloadAllTabsToggle.checked = reloadAllTabs;
+  reloadAllTabsToggle.onchange = async () => {
+    await chrome.storage.local.set({ reloadAllTabs: reloadAllTabsToggle.checked });
+  };
   loadAccounts();
 });
 

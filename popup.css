@@ -93,6 +93,23 @@ h1 {
   color: #fff;
 }
 
+.options {
+  margin-top: 8px;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  color: #bbb;
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.option input {
+  accent-color: var(--accent);
+}
+
 .footer {
   margin-top: 8px;
   text-align: center;
