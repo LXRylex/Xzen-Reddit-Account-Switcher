@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <link rel="stylesheet" href="popup.css"/>
+  <title>uSwitch: Reddit Accounts</title>
+</head>
+<body>
+  <div class="container">
+    <!-- Bottom-right settings button -->
+    <button id="openSettings" class="settings-btn br" title="Settings" aria-label="Settings">
+      <img src="settings.png" alt="Settings"/>
+    </button>
+
+    <h1>uSwitch: Reddit Accounts</h1>
+
+    <div class="save-section">
+      <input id="accountName" type="text" placeholder="Account name"/>
+      <button id="saveBtn">Save</button>
+    </div>
+
+    <ul id="accountsList"></ul>
+
+    <div class="footer">
+      <div class="footer-text">
+        Drag ≡ to reorder<br/>
+        Ctrl+Shift&nbsp;1–4 to quick-switch
+      </div>
+      <div class="footer-reviews">
+        Enjoying uSwitch?
+        <a href="https://chrome.google.com/webstore/detail/phgceelfckbblkoenaaajalniclklcia" target="_blank">
+          Leave a review ✨
+        </a>
+      </div>
+      <div class="footer-icons">
+        <a href="https://buymeacoffee.com/yuilix" target="_blank" class="donate-btn" title="Support on Patreon">
+          <img src="donate.png" alt="buymeacoffee"/>
+          <span>Donate</span>
+        </a>
+        <a href="https://github.com/LXRylex/Xzen_Reddit_Account_Switcher"
+           target="_blank"
+           class="icon-filter github-icon"
+           title="Source on GitHub">
+          <img src="github.png" alt="GitHub"/>
+        </a>
+        <a href="https://xzentosia.neocities.org/Ghosty/" target="_blank" class="icon-filter" title="My Other Projects">
+          <img src="xzen-size-fix.png" alt="Link"/>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="modal hidden">
+    <div class="modal-content">
+      <input id="editInput" type="text" placeholder="New name"/>
+      <div class="modal-buttons">
+        <button id="confirmEdit">Save</button>
+        <button id="cancelEdit">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteModal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="modal-content">
+      <div id="deleteMsg" style="margin-bottom:8px;">Delete?</div>
+      <div class="modal-buttons">
+        <button id="confirmDelete" aria-label="Confirm delete">Delete</button>
+        <button id="cancelDelete" aria-label="Cancel delete">Cancel</button>
+      </div>
+    </div>
+  </div>
+  <!-- Donate back-up notice (shows once) -->
+<div id="donateOnceModal" class="modal hidden" aria-modal="true" role="dialog">
+  <div class="modal-content">
+    <div style="margin-bottom:10px; font-weight:700;">Donations are back online & New Update</div>
+    <div style="margin-bottom:12px; opacity:.9;">
+      If you want to support uSwitch, the donate button works again. Also a new setting have been added in the advanced tab to auto close the popup after switching accounts
+    </div>
+    <div class="modal-buttons">
+      <button id="donateOnceOk">Got it</button>
+    </div>
+  </div>
+</div>
+
+  <div id="saveHelpModal" class="modal hidden" aria-modal="true" role="dialog" aria-labelledby="saveHelpTitle">
+    <div class="modal-content save-help-content">
+      <div id="saveHelpTitle" class="modal-title">Before saving an account</div>
+      <div class="modal-text">
+        uSwitch saves the Reddit account you are currently logged into. To save another account, log in to that Reddit account first, then come back here and press Save.
+      </div>
+      <label class="modal-check">
+        <input id="saveHelpDontShow" type="checkbox"/>
+        <span>Do not show this again</span>
+      </label>
+      <div class="modal-buttons">
+        <button id="saveHelpContinue">Continue</button>
+        <button id="saveHelpCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

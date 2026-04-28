@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>uSwitch Settings</title>
+  <link rel="stylesheet" href="settings.css"/>
+</head>
+
+<body>
+  <!-- Header -->
+  <header class="top">
+    <div class="top-left">
+      <h1>uSwitch Settings</h1>
+      <p class="sub muted small">Import/Export your Reddit Accounts</p>
+    </div>
+    <div class="meta">
+      <span id="ver" class="badge">v0.0.0</span>
+      <span class="badge beta">Stable</span>
+    </div>
+  </header>
+
+  <!-- Layout -->
+  <main class="layout">
+    <aside class="side" aria-label="Settings sections">
+      <button class="tablink active" data-tab="backup" type="button">Import / Export</button>
+      <button class="tablink" data-tab="manage" type="button">Manage</button>
+      <button class="tablink" data-tab="advanced" type="button">Advanced</button>
+    </aside>
+
+    <!-- Content -->
+    <section class="panelwrap">
+
+      <!-- Import / Export -->
+      <section id="tab-backup" class="panel active">
+        <div class="card warn">
+          <h3 class="danger-title">Important</h3>
+          <p class="danger-text small">
+            Due to security reasons there will be no "Recover Password" option. If you lose the backup password, it cannot be recovered. You’ll need to make a new backup.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Export</h2>
+            <p class="muted small">Creates an encrypted <code>.uSwitch</code> file of your saved accounts.</p>
+          </div>
+
+          <div class="grid fine">
+            <label class="lbl" for="expPass">Password</label>
+            <div class="input-wrap">
+              <input id="expPass" class="input" type="password" placeholder="Enter password"/>
+              <button id="expEye" class="eye" type="button" aria-label="Show password">𓂋</button>
+            </div>
+
+            <div class="col-span-2 meter">
+              <div id="expMeterBar" class="meter-bar"></div>
+              <span id="expMeterText" class="meter-text">Strength: </span>
+            </div>
+
+            <div class="col-span-2 actions">
+              <button id="btnExport" class="btn" type="button">Export</button>
+              <span class="status">
+                <span id="expDot" class="dot dot-idle"></span>
+                <span id="expStatus" class="status-text">Idle</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Import</h2>
+            <p class="muted small">Restores accounts from a <code>.uSwitch</code> file.</p>
+          </div>
+
+          <div class="grid fine">
+            <label class="lbl" for="impFile">Backup file</label>
+            <input id="impFile" class="input" type="file" accept=".uSwitch"/>
+
+            <label class="lbl" for="impPass">Password</label>
+            <div class="input-wrap">
+              <input id="impPass" class="input" type="password" placeholder="Backup password"/>
+              <button id="impEye" class="eye" type="button" aria-label="Show password">𓂋</button>
+            </div>
+
+            <label class="lbl">Replace all</label>
+            <div class="checkline">
+              <label class="switch" title="Overwrite existing accounts (otherwise merge)">
+                <input id="replaceAll" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Overwrite existing accounts (otherwise merge)</span>
+            </div>
+
+            <div class="col-span-2 actions">
+              <button id="btnPreview" class="btn ghost" type="button">Preview</button>
+              <button id="btnImport" class="btn" type="button">Import</button>
+              <span class="status">
+                <span id="impDot" class="dot dot-idle"></span>
+                <span id="impStatus" class="status-text">Idle</span>
+              </span>
+            </div>
+          </div>
+
+          <div id="previewBox" class="preview hidden">
+            <div class="preview-head">
+              <strong>Import preview</strong>
+              <span class="muted small">No changes computed yet</span>
+            </div>
+            <div class="preview-summary">
+              <span class="chip add">New: <b id="pvAdd">0</b></span>
+              <span class="chip upd">Updated: <b id="pvUpd">0</b></span>
+              <span class="chip same">Unchanged: <b id="pvSame">0</b></span>
+              <span class="chip del">Will remove: <b id="pvDel">0</b></span>
+            </div>
+            <ul id="previewList" class="preview-list"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Manage -->
+      <section id="tab-manage" class="panel">
+        <div class="card">
+          <div class="card-head">
+            <h2>Accounts</h2>
+            <p class="muted small">Search, rename, tag, and delete profiles.</p>
+          </div>
+
+          <div class="manage-top">
+            <input id="search" class="input" placeholder="Search by name, note or #tag… (use #tag to filter tags)"/>
+          </div>
+          <ul id="acctList" class="acct-list"></ul>
+        </div>
+      </section>
+
+      <!-- Advanced -->
+      <section id="tab-advanced" class="panel">
+        <div class="card">
+          <div class="card-head">
+            <h2>Encryption</h2>
+            <p class="muted small">Backups are encrypted end-to-end. Choose one engine below.</p>
+          </div>
+
+          <div class="engine-group unified-group">
+            <label class="option">
+              <input type="radio" name="engine" id="engine-aes" value="aes-gcm" checked/>
+              <span>
+                <span class="opt-title">AES-256-GCM</span>
+                <span class="pill pill-safe">SAFE</span>
+                <span class="pill pill-backcompat">Backwards compatible</span>
+                <div class="opt-desc muted small">
+                  Authenticated encryption with integrity checks. Stable across all browsers and used since the first release.
+                </div>
+              </span>
+            </label>
+          </div>
+
+          <div class="group-head sep">Experimental</div>
+
+          <div class="engine-group kdf-group">
+            <label class="option">
+              <input type="radio" name="engine" id="engine-pbkdf2-256" value="pbkdf2-sha256"/>
+              <span>
+                <span class="opt-title">
+                  PBKDF2-SHA256
+                  <span class="pill pill-exp">EXPERIMENTAL</span>
+                </span>
+                <div class="opt-desc muted small">
+                  Widely supported and portable. Slightly slower; use strong passwords. We’re validating cross-device behavior.
+                </div>
+              </span>
+            </label>
+            <div class="kdf-params" data-for="pbkdf2-sha256">
+              <div class="grid fine">
+                <label class="lbl" for="pbkIters256">Iterations</label>
+                <input id="pbkIters256" class="input" type="number" min="50000" step="1000" value="250000"/>
+              </div>
+            </div>
+
+            <label class="option">
+              <input type="radio" name="engine" id="engine-pbkdf2-512" value="pbkdf2-sha512"/>
+              <span>
+                <span class="opt-title">
+                  PBKDF2-SHA512
+                  <span class="pill pill-exp">EXPERIMENTAL</span>
+                </span>
+                <div class="opt-desc muted small">
+                  Larger digest; marginally slower than SHA256. Good if your password is strong and you want a longer hash.
+                </div>
+              </span>
+            </label>
+            <div class="kdf-params" data-for="pbkdf2-sha512">
+              <div class="grid fine">
+                <label class="lbl" for="pbkIters512">Iterations</label>
+                <input id="pbkIters512" class="input" type="number" min="50000" step="1000" value="220000"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="saveEngine" class="btn" type="button">Save</button>
+            <span class="status">
+              <span id="engDot" class="dot dot-idle"></span>
+              <span id="engStatus" class="status-text">Idle</span>
+            </span>
+          </div>
+
+          <p class="muted small">Imports automatically use the engine recorded in the backup header.</p>
+        </div>
+
+        <!-- Switching behavior settings -->
+        <div class="card">
+          <div class="card-head">
+            <h2>Switching</h2>
+            <p class="muted small">Control popup and Reddit tab behavior after switching accounts.</p>
+          </div>
+
+          <div class="grid fine">
+            <label class="lbl">Auto close</label>
+            <div class="checkline">
+              <label class="switch" title="Close the popup after switching accounts">
+                <input id="closeOnSwitch" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Close popup after switching accounts</span>
+            </div>
+
+            <label class="lbl">Reddit reloads</label>
+            <div class="checkline">
+              <label class="switch" title="Only reload the active Reddit tab after switching accounts">
+                <input id="reloadActiveTabOnly" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Only reload the current active Reddit tab</span>
+            </div>
+
+            <div class="col-span-2 actions">
+              <span class="status">
+                <span id="closeDot" class="dot dot-idle"></span>
+                <span id="closeStatus" class="status-text">Idle</span>
+              </span>
+              <span class="status">
+                <span id="reloadDot" class="dot dot-idle"></span>
+                <span id="reloadStatus" class="status-text">Idle</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card danger">
+          <div class="card-head">
+            <h2>Developer Tools</h2>
+            <p class="muted small">
+              Wipe everything related to uSwitch on this browser: saved profiles, order, hidden flags, encryption key, and Reddit cookies.
+              <b>This cannot be undone.</b>
+            </p>
+          </div>
+
+          <div class="actions">
+            <button id="btnWipe" class="btn danger" type="button">Wipe all data & cookies</button>
+            <span class="status">
+              <span id="wipeDot" class="dot dot-idle"></span>
+              <span id="wipeStatus" class="status-text">Idle</span>
+            </span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="foot small muted">© <span id="year"></span> Xzentosia</footer>
+
+  <!-- Export warning modal -->
+  <div id="exportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
+    <div class="modal-backdrop" data-close="1"></div>
+
+    <div class="modal-card" role="document">
+      <h3 id="exportModalTitle" class="modal-title">Security warning</h3>
+      <p class="modal-text muted">
+        Your <code>.uSwitch</code> backup contains your saved account data.
+        <br><br>
+        <b>Never share it.</b> Don’t upload it to Drive links, Discord, or public sites.
+        If someone gets this file + your password, they can import your accounts.
+      </p>
+
+      <label class="modal-check">
+        <input id="exportAck" type="checkbox">
+        <span>I understand. I will not share the backup file.</span>
+      </label>
+
+      <div class="modal-actions">
+        <button id="exportCancel" class="btn ghost" type="button">Cancel</button>
+        <button id="exportContinue" class="btn" type="button" disabled>Continue export</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

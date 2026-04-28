@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "uSwitch: Reddit Accounts",
+  "short_name": "uSwitch",
+  "version": "3.04.28",
+  "author": "Yuilix",
+  "description": "Account manager & Account switcher for Reddit",
+
+  "action": {
+    "default_title": "uSwitch",
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "service_worker": "background.js"
+  },
+
+  "permissions": [
+    "cookies",
+    "storage",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "*://*.reddit.com/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["reload.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "commands": {
+    "switch-1": {
+      "description": "Switch to account #1",
+      "suggested_key": { "default": "Ctrl+Shift+1", "mac": "Command+Shift+1" }
+    },
+    "switch-2": {
+      "description": "Switch to account #2",
+      "suggested_key": { "default": "Ctrl+Shift+2", "mac": "Command+Shift+2" }
+    },
+    "switch-3": {
+      "description": "Switch to account #3",
+      "suggested_key": { "default": "Ctrl+Shift+3", "mac": "Command+Shift+3" }
+    },
+    "switch-4": {
+      "description": "Switch to account #4",
+      "suggested_key": { "default": "Ctrl+Shift+4", "mac": "Command+Shift+4" }
+    }
+  },
+
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  },
+
+  "update_url": "https://clients2.google.com/service/update2/crx"
+}
