@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "uSwitch: Reddit Accounts",
+  "short_name": "uSwitch",
+  "version": "3.4.31",
+  "author": "Yuilix",
+  "description": "Powered by Xzentosia",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{e1d0ac3f-4662-497a-a009-8c651390fe9d}",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+
+  "action": {
+    "default_title": "uSwitch",
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
+  "permissions": [
+    "cookies",
+    "downloads",
+    "storage",
+    "tabs"
+  ],
+
+  "host_permissions": [
+    "*://*.reddit.com/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["*://*.reddit.com/*"],
+      "js": ["reload.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "commands": {
+    "switch-1": {
+      "description": "Switch to account #1",
+      "suggested_key": { "default": "Ctrl+Shift+1", "mac": "Command+Shift+1" }
+    },
+    "switch-2": {
+      "description": "Switch to account #2",
+      "suggested_key": { "default": "Ctrl+Shift+2", "mac": "Command+Shift+2" }
+    },
+    "switch-3": {
+      "description": "Switch to account #3",
+      "suggested_key": { "default": "Ctrl+Shift+3", "mac": "Command+Shift+3" }
+    },
+    "switch-4": {
+      "description": "Switch to account #4",
+      "suggested_key": { "default": "Ctrl+Shift+4", "mac": "Command+Shift+4" }
+    }
+  },
+
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  }
+}
