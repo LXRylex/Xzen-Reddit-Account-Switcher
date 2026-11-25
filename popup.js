@@ -1,3 +1,6 @@
+// popup.js — MV3 (Chromium), ID-based profiles, multi-cookie, encrypted + migration
+// Requires BG service worker to handle: { cmd: "uswitch:switch", profileId }
+
 const HOSTS = [
   "reddit.com", "www.reddit.com", "old.reddit.com", "mod.reddit.com",
   "oauth.reddit.com", "gateway.reddit.com"
@@ -10,6 +13,10 @@ const confirmBtn = document.getElementById("confirmEdit");
 const cancelBtn  = document.getElementById("cancelEdit");
 const donateOnceModal = document.getElementById("donateOnceModal");
 const donateOnceOk    = document.getElementById("donateOnceOk");
+const supportWeeklyModal = document.getElementById("supportWeeklyModal");
+const supportReview = document.getElementById("supportReview");
+const supportDonate = document.getElementById("supportDonate");
+const supportLater = document.getElementById("supportLater");
 const saveHelpModal = document.getElementById("saveHelpModal");
 const saveHelpDontShow = document.getElementById("saveHelpDontShow");
 const saveHelpContinue = document.getElementById("saveHelpContinue");
@@ -21,20 +28,26 @@ const delYesBtn  = document.getElementById("confirmDelete");
 const delNoBtn   = document.getElementById("cancelDelete");
 
 let cryptoKey = null;
-let currentEdit = null;
-let pendingDelete = null;
+let currentEdit = null;   // profileId being renamed
+let pendingDelete = null; // profileId pending delete
+const REVIEW_URL = "https://addons.mozilla.org/en-CA/firefox/addon/uswitch-reddit-accounts/";
+const DONATE_URL = "https://buymeacoffee.com/yuilix";
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const PROJECTS_UPDATE_NOTICE_KEY = "projectsLinkUpdateNoticeSeenVersion";
 
-// NEW: cached setting
+// NEW: cached setting (keeps popup fast)
 let closeAfterSwitch = false;
 async function showDonateOnceIfNeeded(){
   if (!donateOnceModal) return;
 
-  const { donateOnceSeen } = await chrome.storage.local.get("donateOnceSeen");
-  if (donateOnceSeen) return;
+  const version = chrome.runtime.getManifest().version;
+  const { projectsLinkUpdateNoticeSeenVersion } = await chrome.storage.local.get(PROJECTS_UPDATE_NOTICE_KEY);
+  if (projectsLinkUpdateNoticeSeenVersion === version) return false;
 
   const close = async () => {
     donateOnceModal.classList.add("hidden");
-    await chrome.storage.local.set({ donateOnceSeen: true });
+    await chrome.storage.local.set({ [PROJECTS_UPDATE_NOTICE_KEY]: version });
+    await showSupportWeeklyIfNeeded(true);
   };
 
   donateOnceModal.classList.remove("hidden");
@@ -42,7 +55,7 @@ async function showDonateOnceIfNeeded(){
   // close by button
   donateOnceOk?.addEventListener("click", close, { once: true });
 
-  // close by clicking backdrop
+  // close by clicking backdrop (outside the card)
   donateOnceModal.addEventListener("click", (e) => {
     if (e.target === donateOnceModal) close();
   }, { once: true });
@@ -51,11 +64,47 @@ async function showDonateOnceIfNeeded(){
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !donateOnceModal.classList.contains("hidden")) close();
   }, { once: true });
+
+  return true;
+}
+
+async function showSupportWeeklyIfNeeded(force = false){
+  if (!supportWeeklyModal) return false;
+
+  const now = Date.now();
+  const { supportPromptLastShownAt } = await chrome.storage.local.get("supportPromptLastShownAt");
+  if (!force && supportPromptLastShownAt && now - supportPromptLastShownAt < WEEK_MS) return false;
+
+  const close = async () => {
+    supportWeeklyModal.classList.add("hidden");
+    await chrome.storage.local.set({ supportPromptLastShownAt: Date.now() });
+  };
+
+  const openThenClose = async (url) => {
+    await close();
+    chrome.tabs.create({ url });
+  };
+
+  supportReview?.addEventListener("click", () => openThenClose(REVIEW_URL), { once: true });
+  supportDonate?.addEventListener("click", () => openThenClose(DONATE_URL), { once: true });
+  supportLater?.addEventListener("click", close, { once: true });
+
+  supportWeeklyModal.addEventListener("click", (e) => {
+    if (!e.target.closest("button")) close();
+  }, { once: true });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !supportWeeklyModal.classList.contains("hidden")) close();
+  }, { once: true });
+
+  supportWeeklyModal.classList.remove("hidden");
+  return true;
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Settings
-  await showDonateOnceIfNeeded();
+  // Settings (top-right gear)
+  const updateNoticeShown = await showDonateOnceIfNeeded();
+  if (!updateNoticeShown) await showSupportWeeklyIfNeeded();
 
   const settingsBtn = document.getElementById("openSettings");
   if (settingsBtn) {
@@ -187,6 +236,7 @@ async function getState() {
     hiddenStates:{},
     activeProfileId: undefined,
     closeOnSwitch: false,
+    showLoggedOutProfile: false,
     reloadActiveTabOnly: false,
     saveHelpDontShowAgain: false
   };
@@ -197,6 +247,7 @@ async function getState() {
     "hiddenStates",
     "activeProfileId",
     "closeOnSwitch",
+    "showLoggedOutProfile",
     "reloadActiveTabOnly",
     "saveHelpDontShowAgain"
   ]);
@@ -445,12 +496,52 @@ async function switchTo(profileId){
   }
 }
 
+async function switchToLoggedOut(){
+  try {
+    const res = await new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ cmd: "uswitch:logout" }, (resp) => {
+        const err = chrome.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        resolve(resp);
+      });
+    });
+
+    if (!res || !res.ok) throw new Error(res?.err || "Logout failed");
+    if (closeAfterSwitch) window.close();
+  } catch (e) {
+    alert("Logout error: " + (e?.message || e));
+  }
+}
+
 /* ===================== Render list ===================== */
 async function loadAccounts() {
   if (!list) return;
 
   const state = await getState();
   list.innerHTML = "";
+
+  if (state.showLoggedOutProfile) {
+    const logoutLi = document.createElement("li");
+    logoutLi.className = "logout-profile";
+    logoutLi.title = "Clear Reddit login cookies and switch to a logged-out session";
+
+    const logoutIcon = document.createElement("span");
+    logoutIcon.className = "logout-profile-icon";
+    logoutIcon.textContent = "↪";
+
+    const logoutName = document.createElement("span");
+    logoutName.className = "account-name";
+    logoutName.textContent = "Logged out";
+
+    const logoutBtn = document.createElement("button");
+    logoutBtn.className = "logout-profile-btn";
+    logoutBtn.textContent = "Logout";
+    logoutBtn.title = "Log out of Reddit";
+    logoutBtn.onclick = switchToLoggedOut;
+
+    logoutLi.append(logoutIcon, logoutName, logoutBtn);
+    list.append(logoutLi);
+  }
 
   for (const id of state.order) {
     const entry = state.profiles[id];

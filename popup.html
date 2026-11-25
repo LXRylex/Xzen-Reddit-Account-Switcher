@@ -29,9 +29,13 @@
       </div>
       <div class="footer-reviews">
         Enjoying uSwitch?
-        <a href="https://chrome.google.com/webstore/detail/phgceelfckbblkoenaaajalniclklcia" target="_blank">
+        <a href="https://addons.mozilla.org/en-CA/firefox/addon/uswitch-reddit-accounts/" target="_blank">
           Leave a review ✨
         </a>
+        <br/>
+        Reporting bugs on
+        <a href="https://github.com/LXRylex/Xzen_Reddit_Account_Switcher/issues" target="_blank">GitHub</a>
+        is highly appreciated.
       </div>
       <div class="footer-icons">
         <a href="https://buymeacoffee.com/yuilix" target="_blank" class="donate-btn" title="Support on Patreon">
@@ -44,7 +48,7 @@
            title="Source on GitHub">
           <img src="github.png" alt="GitHub"/>
         </a>
-        <a href="https://xzentosia.neocities.org/Ghosty/" target="_blank" class="icon-filter" title="My Other Projects">
+        <a href="https://projects.xzentosia.com/xzentosia_projects.html" target="_blank" class="icon-filter" title="My Other Projects">
           <img src="xzen-size-fix.png" alt="Link"/>
         </a>
       </div>
@@ -70,18 +74,32 @@
       </div>
     </div>
   </div>
-  <!-- Donate back-up notice (shows once) -->
+  <!-- Update notice (shows once per update) -->
 <div id="donateOnceModal" class="modal hidden" aria-modal="true" role="dialog">
   <div class="modal-content">
-    <div style="margin-bottom:10px; font-weight:700;">Donations are back online & New Update</div>
+    <div style="margin-bottom:10px; font-weight:700;">Projects link updated</div>
     <div style="margin-bottom:12px; opacity:.9;">
-      If you want to support uSwitch, the donate button works again. Also a new setting have been added in the advanced tab to auto close the popup after switching accounts
+      The projects button now opens the new Xzentosia projects page, so you can find the latest tools and updates in one place, also added a new toggle to redirect to homepage upon switching accounts.
     </div>
     <div class="modal-buttons">
       <button id="donateOnceOk">Got it</button>
     </div>
   </div>
 </div>
+
+  <div id="supportWeeklyModal" class="modal hidden" aria-modal="true" role="dialog">
+    <div class="modal-content">
+      <div style="margin-bottom:10px; font-weight:700;">Enjoying uSwitch? 💜</div>
+      <div style="margin-bottom:12px; opacity:.9;">
+        If you like the extension, a kind review or small donation would mean a lot and helps keep uSwitch free 💜
+      </div>
+      <div class="modal-buttons">
+        <button id="supportReview">Review</button>
+        <button id="supportDonate">Donate</button>
+        <button id="supportLater">Later</button>
+      </div>
+    </div>
+  </div>
 
   <div id="saveHelpModal" class="modal hidden" aria-modal="true" role="dialog" aria-labelledby="saveHelpTitle">
     <div class="modal-content save-help-content">

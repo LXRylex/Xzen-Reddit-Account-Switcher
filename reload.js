@@ -1,6 +1,7 @@
+// reload.js — safety net: clear caches + throttle reload on lastSwitchAt (or legacy lastSwitched)
 (() => {
   const KEY = "__uswitch_lastSeen__";
-  const SAFE_DELAY_MS = 800; // prevent double reloads
+  const SAFE_DELAY_MS = 800; // prevent double reload storms
 
   async function clearCaches() {
     try { localStorage && localStorage.clear(); } catch {}
@@ -28,7 +29,8 @@
     if (!change) return;
 
     chrome.storage.local.get("reloadActiveTabOnly", ({ reloadActiveTabOnly }) => {
-      // Dev Note: In active tab only mode, the background worker reloads the active Reddit tab.
+      // In active-tab-only mode, the background worker reloads the active Reddit tab.
+      // Other Reddit tabs should stay untouched.
       if (reloadActiveTabOnly) return;
 
       const ts = Number(change.newValue || 0);

@@ -22,6 +22,7 @@
 
   <!-- Layout -->
   <main class="layout">
+    <!-- Sidebar tabs (JS relies on .tablink + data-tab) -->
     <aside class="side" aria-label="Settings sections">
       <button class="tablink active" data-tab="backup" type="button">Import / Export</button>
       <button class="tablink" data-tab="manage" type="button">Manage</button>
@@ -37,13 +38,15 @@
           <h3 class="danger-title">Important</h3>
           <p class="danger-text small">
             Due to security reasons there will be no "Recover Password" option. If you lose the backup password, it cannot be recovered. You’ll need to make a new backup.
+            <br><br>
+            <b>Anti-scam notice:</b> I will never contact you or ask you to provide a backup file, password, cookies, or other account data for support. Anyone requesting them may be a scammer impersonating support.
           </p>
         </div>
 
         <div class="card">
           <div class="card-head">
             <h2>Export</h2>
-            <p class="muted small">Creates an encrypted <code>.uSwitch</code> file of your saved accounts.</p>
+            <p class="muted small">Creates an encrypted or explicitly passwordless <code>.uSwitch</code> file of your saved accounts.</p>
           </div>
 
           <div class="grid fine">
@@ -56,6 +59,15 @@
             <div class="col-span-2 meter">
               <div id="expMeterBar" class="meter-bar"></div>
               <span id="expMeterText" class="meter-text">Strength: </span>
+            </div>
+
+            <label class="lbl">Passwordless</label>
+            <div class="checkline">
+              <label class="switch" title="Export an unencrypted backup that does not require a password">
+                <input id="passwordlessExport" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Export without encryption (unsafe)</span>
             </div>
 
             <div class="col-span-2 actions">
@@ -78,11 +90,13 @@
             <label class="lbl" for="impFile">Backup file</label>
             <input id="impFile" class="input" type="file" accept=".uSwitch"/>
 
-            <label class="lbl" for="impPass">Password</label>
+            <label id="impPassLabel" class="lbl" for="impPass">Password</label>
             <div class="input-wrap">
               <input id="impPass" class="input" type="password" placeholder="Backup password"/>
               <button id="impEye" class="eye" type="button" aria-label="Show password">𓂋</button>
             </div>
+            <span></span>
+            <span id="impSecurityHint" class="muted small">Encrypted backups require their password.</span>
 
             <label class="lbl">Replace all</label>
             <div class="checkline">
@@ -139,7 +153,7 @@
         <div class="card">
           <div class="card-head">
             <h2>Encryption</h2>
-            <p class="muted small">Backups are encrypted end-to-end. Choose one engine below.</p>
+            <p class="muted small">Password-protected backups are encrypted end-to-end. Choose one engine below.</p>
           </div>
 
           <div class="engine-group unified-group">
@@ -226,6 +240,15 @@
               <span class="muted small">Close popup after switching accounts</span>
             </div>
 
+            <label class="lbl">Logged-out profile</label>
+            <div class="checkline">
+              <label class="switch" title="Show a built-in profile that logs out of Reddit">
+                <input id="showLoggedOutProfile" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Show the built-in Logged out profile</span>
+            </div>
+
             <label class="lbl">Reddit reloads</label>
             <div class="checkline">
               <label class="switch" title="Only reload the active Reddit tab after switching accounts">
@@ -235,14 +258,19 @@
               <span class="muted small">Only reload the current active Reddit tab</span>
             </div>
 
+            <label class="lbl">Homepage redirect</label>
+            <div class="checkline">
+              <label class="switch" title="Open the Reddit homepage after switching accounts">
+                <input id="redirectHomeOnSwitch" type="checkbox"/>
+                <span class="slider"></span>
+              </label>
+              <span class="muted small">Go to the Reddit homepage after switching accounts</span>
+            </div>
+
             <div class="col-span-2 actions">
               <span class="status">
-                <span id="closeDot" class="dot dot-idle"></span>
-                <span id="closeStatus" class="status-text">Idle</span>
-              </span>
-              <span class="status">
-                <span id="reloadDot" class="dot dot-idle"></span>
-                <span id="reloadStatus" class="status-text">Idle</span>
+                <span id="switchingDot" class="dot dot-idle"></span>
+                <span id="switchingStatus" class="status-text">Idle</span>
               </span>
             </div>
           </div>
@@ -271,13 +299,13 @@
 
   <footer class="foot small muted">© <span id="year"></span> Xzentosia</footer>
 
-  <!-- Export warning modal -->
+  <!-- Export warning modal (KEEP IT HERE, outside panels) -->
   <div id="exportModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
     <div class="modal-backdrop" data-close="1"></div>
 
     <div class="modal-card" role="document">
       <h3 id="exportModalTitle" class="modal-title">Security warning</h3>
-      <p class="modal-text muted">
+      <p id="exportWarningText" class="modal-text muted">
         Your <code>.uSwitch</code> backup contains your saved account data.
         <br><br>
         <b>Never share it.</b> Don’t upload it to Drive links, Discord, or public sites.
@@ -286,7 +314,7 @@
 
       <label class="modal-check">
         <input id="exportAck" type="checkbox">
-        <span>I understand. I will not share the backup file.</span>
+        <span id="exportAckText">I understand. I will not share the backup file.</span>
       </label>
 
       <div class="modal-actions">

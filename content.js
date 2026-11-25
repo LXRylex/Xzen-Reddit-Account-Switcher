@@ -1,3 +1,4 @@
+// content.js — purge app caches before Reddit boots (document_start)
 (() => {
   // local/session storage
   try { localStorage && localStorage.clear(); } catch {}
@@ -13,7 +14,7 @@
     } catch {}
   })();
 
-  // IndexedDB cleanup
+  // IndexedDB cleanup (best-effort; not all Chromium builds expose .databases())
   try {
     if (self.indexedDB && typeof indexedDB.databases === "function") {
       indexedDB.databases().then(dbs => {

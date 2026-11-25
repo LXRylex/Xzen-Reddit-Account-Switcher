@@ -1,3 +1,5 @@
+// background.js — MV3 service worker for uSwitch (profiles-by-ID, multi-cookie)
+
 const HOSTS = [
   "reddit.com", "www.reddit.com", "old.reddit.com",
   "mod.reddit.com", "oauth.reddit.com", "gateway.reddit.com"
@@ -50,7 +52,8 @@ async function getState() {
     order:[],
     hiddenStates:{},
     activeProfileId: undefined,
-    reloadActiveTabOnly: false
+    reloadActiveTabOnly: false,
+    redirectHomeOnSwitch: false
   };
   const got = await chrome.storage.local.get([
     "schemaVersion",
@@ -58,7 +61,8 @@ async function getState() {
     "order",
     "hiddenStates",
     "activeProfileId",
-    "reloadActiveTabOnly"
+    "reloadActiveTabOnly",
+    "redirectHomeOnSwitch"
   ]);
   return Object.assign(def, got);
 }
@@ -102,7 +106,20 @@ async function setCookies(cookies) {
 }
 
 async function reloadRedditTabs() {
-  const { reloadActiveTabOnly } = await chrome.storage.local.get("reloadActiveTabOnly");
+  const { reloadActiveTabOnly, redirectHomeOnSwitch } = await chrome.storage.local.get([
+    "reloadActiveTabOnly",
+    "redirectHomeOnSwitch"
+  ]);
+
+  let redirectedTabId;
+  if (redirectHomeOnSwitch) {
+    const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (activeTab?.id && /^https?:\/\/([^/]+\.)?reddit\.com\//i.test(activeTab.url || "")) {
+      await chrome.tabs.update(activeTab.id, { url: "https://www.reddit.com/?feed=home" });
+      redirectedTabId = activeTab.id;
+      if (reloadActiveTabOnly) return;
+    }
+  }
 
   if (reloadActiveTabOnly) {
     const [activeTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -113,7 +130,9 @@ async function reloadRedditTabs() {
   }
 
   const tabs = await chrome.tabs.query({ url: ["*://*.reddit.com/*"] });
-  await Promise.allSettled(tabs.map(t => chrome.tabs.reload(t.id)));
+  await Promise.allSettled(
+    tabs.filter(t => t.id !== redirectedTabId).map(t => chrome.tabs.reload(t.id))
+  );
 }
 
 // ===== Core switch by profileId =====
@@ -145,12 +164,36 @@ async function switchTo(profileId) {
   }
 }
 
+async function switchToLoggedOut() {
+  const lock = await chrome.storage.session.get("switchLock");
+  if (lock.switchLock) return;
+  await chrome.storage.session.set({ switchLock: true });
+
+  try {
+    await clearRedditCookies();
+    await chrome.storage.local.remove("activeProfileId");
+    await chrome.storage.local.set({ lastSwitchAt: Date.now() });
+    await reloadRedditTabs();
+  } finally {
+    await chrome.storage.session.remove("switchLock");
+  }
+}
+
 // ===== Messages from popup =====
 chrome.runtime.onMessage.addListener((msg, _sender, send) => {
   (async () => {
     if (msg?.cmd === "uswitch:switch" && msg.profileId) {
       try {
         await switchTo(msg.profileId);
+        send({ ok: true });
+      } catch (e) {
+        send({ ok: false, err: String(e && e.message || e) });
+      }
+      return;
+    }
+    if (msg?.cmd === "uswitch:logout") {
+      try {
+        await switchToLoggedOut();
         send({ ok: true });
       } catch (e) {
         send({ ok: false, err: String(e && e.message || e) });

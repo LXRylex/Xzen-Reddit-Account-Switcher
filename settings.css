@@ -1,6 +1,6 @@
 :root{
   /* base */
-  --bg:#0b0b10;
+  --bg:#0b0b10; /* dark gray, not pure black */
 
   /* text + lines */
   --fg:#fff;
@@ -8,7 +8,7 @@
   --edge:#232323;
   --edge2:#2e2e2e;
 
-  /* accent */
+  /* accent (purple) */
   --accent:#b38aff;
   --ring: 0 0 0 2px rgba(179,138,255,.22);
 
@@ -35,7 +35,7 @@
 
   /* form alignment */
   --labelw: 180px;
-  --labelw-fine: 160px;
+  --labelw-fine: 160px; /* tighter so inputs don’t start too far right */
 }
 
 *{ box-sizing:border-box; }
@@ -107,7 +107,7 @@ body{
   gap:6px;
 }
 
-/* Tabs */
+/* Tabs: NO outlines, single underline (purple) with grow animation */
 .tablink{
   width:100%;
   text-align:left;
@@ -138,7 +138,7 @@ body{
   left:14px;
   bottom:6px;
   height:2px;
-  width:58px;
+  width:58px;                 /* single underline (no second outline) */
   border-radius:999px;
   background:var(--accent);
 
@@ -166,7 +166,9 @@ body{
 .panel{ display:none; }
 .panel.active{ display:block; }
 
-/* Cards outline */
+/* =========================
+   Cards: outline only
+   ========================= */
 .card{
   background:transparent;
   border:1px solid var(--edge);
@@ -194,7 +196,9 @@ code{
   color:#fff;
 }
 
-/* Forms */
+/* =========================
+   Forms (ALIGN FIX)
+   ========================= */
 .grid{
   display:grid;
   grid-template-columns: var(--labelw) minmax(0, 1fr);
@@ -202,11 +206,13 @@ code{
   margin-top:10px;
 }
 
+/* tighter label col for the “fine” sections so inputs start closer */
 .grid.fine{
   grid-template-columns: var(--labelw-fine) minmax(0, 1fr);
   max-width:720px;
 }
 
+/* prevent input column from “pushing away” */
 .input,
 .input-wrap,
 .grid > *{
@@ -254,7 +260,9 @@ code{
 
 .checkline{ display:flex; align-items:center; gap:10px; }
 
-/* Buttons + status */
+/* =========================
+   Buttons + status
+   ========================= */
 .actions{
   margin-top:12px;
   display:flex;
@@ -287,6 +295,7 @@ code{
   box-shadow:none;
 }
 
+/* wipe stays red but SIMPLE (no fill) */
 .btn.danger{
   border-color: rgba(231,76,60,.75);
   color: var(--danger);
@@ -296,6 +305,7 @@ code{
   box-shadow:0 0 0 2px rgba(231,76,60,.12);
 }
 
+/* specifically: wipe button text not bold */
 #btnWipe{ font-weight:600; }
 
 .status{
@@ -325,13 +335,15 @@ code{
 }
 .danger-text{ margin:0; color:#ffb3b3; }
 
-/* Password meter */
-
+/* =========================
+   Password meter (ALIGN FIX)
+   ========================= */
+/* meter should sit under the input column, not under the label */
 .grid .meter.col-span-2{
   grid-column: 2 / 3;
   width:100%;
   justify-self:stretch;
-  margin-top:-2px;
+  margin-top:-2px; /* closer to the password input */
 }
 
 .meter{
@@ -350,7 +362,7 @@ code{
   border-radius:999px;
   background:#222;
   transition:background .2s ease;
-  flex:1 1 auto;
+  flex:1 1 auto;   /* fill available width */
   width:auto;
   min-width:120px;
 }
@@ -374,7 +386,9 @@ code{
   .meter-text{ width:100%; white-space:normal; }
 }
 
-/* Import preview */
+/* =========================
+   Import preview
+   ========================= */
 .preview{
   margin-top:12px;
   border:1px solid var(--edge);
@@ -433,7 +447,9 @@ code{
 .badge-mini.same{ background:rgba(160,160,160,.10); color:#e5e5e5; border-color:rgba(160,160,160,.35); }
 .badge-mini.del{  background:rgba(231,76,60,.12);  color:#ffb3b3; border-color:rgba(231,76,60,.65); }
 
-/* Manage list */
+/* =========================
+   Manage list
+   ========================= */
 .manage-top{ margin:6px 0 12px; }
 
 .acct-list{
@@ -533,7 +549,9 @@ code{
   border-color:var(--accent);
 }
 
-/* Advanced / Experimental separators */
+/* =========================
+   Advanced / Experimental separators
+   ========================= */
 .group-head{ margin:12px 0 6px; font-weight:900; }
 .group-head.sep{
   border-top:1px solid rgba(231,76,60,.55);
@@ -592,6 +610,7 @@ code{
 .option input[type="radio"]:focus-visible{ box-shadow:var(--ring); border-color:var(--accent); }
 .option input[type="radio"]:checked::before{ transform:scale(1); }
 
+/* Option body: outline only */
 .engine-group .option input[type="radio"] + span{
   background:transparent;
   border:1px solid var(--edge);
@@ -633,7 +652,9 @@ code{
 .pill-backcompat{ background:var(--pill-bc-bg); color:var(--pill-bc-fg); border-color:var(--pill-bc-br); }
 .pill-exp{ background:var(--pill-exp-bg); color:var(--pill-exp-fg); border-color:var(--pill-exp-br); }
 
-/* Toggle switches */
+/* =========================
+   Toggle switches (ON = purple)
+   ========================= */
 #replaceAll{
   appearance:none;
   -webkit-appearance:none;
@@ -710,13 +731,18 @@ code{
   background:#000;
 }
 
-/* Footer */
+/* =========================
+   Footer
+   ========================= */
 .foot{
   text-align:center;
   border-top:1px solid var(--edge);
   padding:12px;
 }
 
+/* =========================
+   Responsive
+   ========================= */
 @media (max-width: 860px){
   .layout{ grid-template-columns:1fr; }
   .side{
@@ -739,15 +765,20 @@ code{
     bottom:6px;
   }
   .panelwrap{ padding:14px; }
+
+  /* on mobile, use the tighter label width everywhere */
   .grid{ grid-template-columns: 140px minmax(0,1fr); }
 }
+/* Strength bar animation (drop into settings.css) */
 
+/* smooth width + a subtle “shine” sweep */
 .meter-bar{
   position:relative;
   overflow:hidden;
   transition: background .22s ease, width .22s ease;
 }
 
+/* shine layer */
 .meter-bar::after{
   content:"";
   position:absolute;
@@ -763,6 +794,7 @@ code{
   pointer-events:none;
 }
 
+/* trigger when strength changes class */
 .meter-bar.meter-weak,
 .meter-bar.meter-ok,
 .meter-bar.meter-strong{
@@ -775,16 +807,20 @@ code{
   animation: meterShine .9s ease;
 }
 
+/* tiny “pop” */
 @keyframes meterPop{
   from{ transform: scaleY(.85); }
   to{ transform: scaleY(1); }
 }
 
+/* shine sweep */
 @keyframes meterShine{
   from{ transform: translateX(-120%); }
   to{ transform: translateX(120%); }
 }
-
+/* =========================
+   Custom modal (Export warning)
+   ========================= */
 body.modal-open{
   overflow:hidden;
 }

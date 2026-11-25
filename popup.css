@@ -29,13 +29,13 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
   list-style:none;
   display:flex;
   flex-direction:column;
-  gap:4px;
+  gap:4px; /* TWEAK: tighter list spacing (was 6px) */
 }
 
 #accountsList li{
-  display:flex; align-items:center; gap:4px;
+  display:flex; align-items:center; gap:4px; /* TWEAK: buttons closer (was 6px) */
   background:var(--input-bg); border:1px solid var(--edge);
-  border-radius:6px; padding:4px 5px;
+  border-radius:6px; padding:4px 5px; /* TWEAK: slimmer row (was 6px 6px) */
 }
 
 #accountsList li.drag-over{
@@ -44,9 +44,25 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
 }
 #accountsList li[data-hidden="true"]{ opacity:.7 }
 
+#accountsList li.logout-profile{
+  border-color:rgba(155,89,182,.55);
+  background:linear-gradient(90deg, rgba(155,89,182,.13), var(--input-bg));
+}
+.logout-profile-icon{
+  flex:0 0 auto;
+  width:18px;
+  color:var(--accent);
+  font-size:16px;
+  text-align:center;
+}
+#accountsList li .logout-profile-btn{
+  border-color:rgba(155,89,182,.45);
+  padding:4px 7px;
+}
+
 /* handle + name */
 .drag-handle{
-  flex:0 0 18px;
+  flex:0 0 18px; /* TWEAK: tiny shrink (was 20px) */
   text-align:center; cursor:grab; user-select:none; color:var(--muted)
 }
 
@@ -56,7 +72,7 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  padding-right:2px;
+  padding-right:2px; /* TWEAK: a lil breathing room before buttons */
 }
 
 /* buttons */
@@ -66,9 +82,9 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
   border:1px solid transparent;
   color:var(--accent);
   cursor:pointer;
-  padding:2px 4px;
+  padding:2px 4px;  /* TWEAK: smaller buttons (was 4px 6px) */
   border-radius:6px;
-  line-height:1;
+  line-height:1;    /* TWEAK: keeps icons compact */
 }
 
 #accountsList li button:hover{ color:#fff; background:#1a1a1a; border-color:#444 }
@@ -140,7 +156,7 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
 .modal-check input{ accent-color:var(--accent) }
 .save-help-content{ width:310px }
 
-/* scrollbar */
+/* scrollbar (nice to have) */
 #accountsList{ scrollbar-width:thin; scrollbar-color:var(--accent) transparent }
 #accountsList::-webkit-scrollbar{ height:8px; width:8px }
 #accountsList::-webkit-scrollbar-thumb{ background:var(--accent); border-radius:8px }
@@ -158,7 +174,7 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
 /* settings button */
 .settings-btn{
   position:absolute;
-  right:8px; bottom:8px;
+  right:8px; bottom:8px;               /* bottom-right */
   width:28px; height:28px; padding:0;
   display:inline-flex; align-items:center; justify-content:center;
   background:var(--input-bg); border:1px solid var(--edge);
@@ -166,10 +182,12 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
 }
 .settings-btn:hover{ border-color:var(--accent); background:#1a1a1a }
 .settings-btn img{ width:18px; height:18px; display:block; filter: invert(100%); }
+/* Make update/support popups smaller (Firefox-friendly) */
+#donateOnceModal,
+#supportWeeklyModal { padding: 12px; }
 
-#donateOnceModal { padding: 12px; }
-
-#donateOnceModal .modal-content{
+#donateOnceModal .modal-content,
+#supportWeeklyModal .modal-content{
   box-sizing: border-box;
   width: min(88vw, 320px);
   max-width: 320px;
@@ -178,11 +196,13 @@ h1{ text-align:center; color:var(--accent); margin-bottom:8px; font-size:16px }
   line-height: 1.25;
 }
 
-#donateOnceModal .modal-buttons{
+#donateOnceModal .modal-buttons,
+#supportWeeklyModal .modal-buttons{
   margin-top: 10px;
 }
 
-#donateOnceModal .modal-buttons button{
+#donateOnceModal .modal-buttons button,
+#supportWeeklyModal .modal-buttons button{
   padding: 6px 10px;
   font-size: 12px;
 }

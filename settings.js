@@ -1,3 +1,8 @@
+/* settings.js - REPLACE ENTIRE FILE
+ * - Portable backup v2 (works cross-browser / cross-device)
+ * - Keeps: engine autosave, strength meter, preview diff, manage, wipe, export warning modal
+ */
+
 (async function(){
   const $  = (q,r=document)=>r.querySelector(q);
   const $$ = (q,r=document)=>Array.from(r.querySelectorAll(q));
@@ -12,16 +17,19 @@
     // export warning modal
     exportModal: $('#exportModal'),
     exportAck: $('#exportAck'),
+    exportWarningText: $('#exportWarningText'), exportAckText: $('#exportAckText'),
     exportCancel: $('#exportCancel'),
     exportContinue: $('#exportContinue'),
 
     // export
     expPass: $('#expPass'), expEye: $('#expEye'),
+    passwordlessExport: $('#passwordlessExport'),
     expMeterBar: $('#expMeterBar'), expMeterText: $('#expMeterText'),
     btnExport: $('#btnExport'), expDot: $('#expDot'), expStatus: $('#expStatus'),
 
     // import
     impFile: $('#impFile'), impPass: $('#impPass'), impEye: $('#impEye'),
+    impPassLabel: $('#impPassLabel'), impSecurityHint: $('#impSecurityHint'),
     btnPreview: $('#btnPreview'), btnImport: $('#btnImport'),
     impDot: $('#impDot'), impStatus: $('#impStatus'),
     replaceAll: $('#replaceAll'),
@@ -44,11 +52,11 @@
 
     // popup behavior
     closeOnSwitch: $('#closeOnSwitch'),
-    closeDot: $('#closeDot'),
-    closeStatus: $('#closeStatus'),
+    showLoggedOutProfile: $('#showLoggedOutProfile'),
     reloadActiveTabOnly: $('#reloadActiveTabOnly'),
-    reloadDot: $('#reloadDot'),
-    reloadStatus: $('#reloadStatus'),
+    redirectHomeOnSwitch: $('#redirectHomeOnSwitch'),
+    switchingDot: $('#switchingDot'),
+    switchingStatus: $('#switchingStatus'),
   };
 
   try { ui.ver.textContent = 'v' + chrome.runtime.getManifest().version; } catch {}
@@ -69,6 +77,16 @@
   setupEye(ui.expPass, ui.expEye);
   setupEye(ui.impPass, ui.impEye);
 
+  function syncPasswordlessUI(){
+    const unsafe = !!ui.passwordlessExport?.checked;
+    if (ui.expPass) ui.expPass.disabled = unsafe;
+    if (ui.expEye) ui.expEye.disabled = unsafe;
+    if (ui.expMeterBar) ui.expMeterBar.className = 'meter-bar';
+    if (ui.expMeterText && unsafe) ui.expMeterText.textContent = 'Strength: not applicable';
+    else if (ui.expMeterText) applyMeter(ui.expPass, ui.expMeterBar, ui.expMeterText);
+  }
+  ui.passwordlessExport?.addEventListener('change', syncPasswordlessUI);
+
   // status helper
   function setStatus(dot, txt, state, msg){
     if (!dot || !txt) return;
@@ -86,7 +104,9 @@
       hiddenStates:{},
       backupEngine:null,
       closeOnSwitch:false,
-      reloadActiveTabOnly:false
+      showLoggedOutProfile:false,
+      reloadActiveTabOnly:false,
+      redirectHomeOnSwitch:false
     };
     const got = await chrome.storage.local.get(keys || Object.keys(def));
     return Object.assign(def, got);
@@ -96,8 +116,22 @@
   /* ===================== Device-key crypto (rawKey) ===================== */
   let deviceKey = null;
 
-  const b64u8 = (u8)=> btoa(String.fromCharCode(...u8));
-  const u8b64 = (s)=> new Uint8Array([...atob(s)].map(c=>c.charCodeAt(0)));
+  // Keep each Function call well below V8's argument limit. Backups can easily
+  // exceed that limit once several accounts/cookies are included.
+  const B64_CHUNK_SIZE = 0x8000;
+  const b64u8 = (u8)=>{
+    let binary = '';
+    for (let i = 0; i < u8.length; i += B64_CHUNK_SIZE) {
+      binary += String.fromCharCode(...u8.subarray(i, i + B64_CHUNK_SIZE));
+    }
+    return btoa(binary);
+  };
+  const u8b64 = (s)=>{
+    const binary = atob(s);
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  };
 
   async function initDeviceCrypto(){
     let { rawKey } = await chrome.storage.local.get("rawKey");
@@ -378,20 +412,83 @@
   }
 
   /* ===================== Export ===================== */
-  function download(bytes, name){
+  function startBrowserDownload(options){
+    return new Promise((resolve, reject)=>{
+      chrome.downloads.download(options, (downloadId)=>{
+        const err = chrome.runtime.lastError;
+        if (err) return reject(new Error(err.message));
+        if (!Number.isInteger(downloadId)) return reject(new Error('The browser did not start the download'));
+        resolve(downloadId);
+      });
+    });
+  }
+
+  function waitForBrowserDownload(downloadId){
+    return new Promise((resolve, reject)=>{
+      let settled = false;
+
+      const finish = (error)=>{
+        if (settled) return;
+        settled = true;
+        chrome.downloads.onChanged.removeListener(onChanged);
+        if (error) reject(error);
+        else resolve();
+      };
+
+      const failure = (code)=> new Error(
+        code === 'USER_CANCELED' ? 'Save canceled' : `Save failed: ${code || 'DOWNLOAD_INTERRUPTED'}`
+      );
+
+      const inspect = (item)=>{
+        if (!item) return;
+        if (item.state === 'complete') finish();
+        else if (item.state === 'interrupted') finish(failure(item.error));
+      };
+
+      const onChanged = (delta)=>{
+        if (delta.id !== downloadId) return;
+        if (delta.error?.current) return finish(failure(delta.error.current));
+        if (delta.state?.current === 'complete') finish();
+        else if (delta.state?.current === 'interrupted') finish(failure());
+      };
+
+      chrome.downloads.onChanged.addListener(onChanged);
+      chrome.downloads.search({ id: downloadId }, (items)=>{
+        const err = chrome.runtime.lastError;
+        if (err) return finish(new Error(err.message));
+        inspect(items?.[0]);
+      });
+    });
+  }
+
+  async function download(bytes, name){
     const blob = new Blob([bytes], { type:'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+
+    if (chrome?.downloads?.download) {
+      try {
+        const downloadId = await startBrowserDownload({ url, filename:name, saveAs:true });
+        await waitForBrowserDownload(downloadId);
+        return;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = name;
+    a.href = url; a.download = name;
     document.body.appendChild(a); a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 60000);
   }
 
   async function exportBackup(){
     setStatus(ui.expDot, ui.expStatus, 'idle', 'Working…');
+    let exported = false;
     try{
       const st = await getState();
+      const passwordless = !!ui.passwordlessExport?.checked;
       const pass = ui.expPass.value.trim();
-      if (!pass) throw new Error('Password required');
+      if (!passwordless && !pass) throw new Error('Password required');
 
       const portableProfiles = await buildPortableProfiles(st.profiles);
 
@@ -404,22 +501,29 @@
         ts: Date.now()
       };
 
-      const kdfSpec = (st.backupEngine && st.backupEngine.kdf) ? st.backupEngine.kdf : null;
-      const { keyBytes, salt, kdf } = await deriveKey(pass, kdfSpec);
-      const { iv, ct } = await aesEnc(keyBytes, enc.encode(JSON.stringify(data)));
-
-      const header = { magic:'USWITCH', ver:2, format:'portable-v2', cipher:'aes-gcm', kdf, salt:b64(salt), iv:b64(iv) };
-      const out = enc.encode(JSON.stringify({ header, data: b64(ct) }));
+      let header, payload;
+      if (passwordless){
+        header = { magic:'USWITCH', ver:2, format:'portable-v2', cipher:'none', security:'unencrypted' };
+        payload = b64(enc.encode(JSON.stringify(data)));
+      } else {
+        const kdfSpec = (st.backupEngine && st.backupEngine.kdf) ? st.backupEngine.kdf : null;
+        const { keyBytes, salt, kdf } = await deriveKey(pass, kdfSpec);
+        const { iv, ct } = await aesEnc(keyBytes, enc.encode(JSON.stringify(data)));
+        header = { magic:'USWITCH', ver:2, format:'portable-v2', cipher:'aes-gcm', kdf, salt:b64(salt), iv:b64(iv) };
+        payload = b64(ct);
+      }
+      const out = enc.encode(JSON.stringify({ header, data: payload }));
 
       const fname = `uSwitch-backup-${new Date().toISOString().slice(0,10)}.uSwitch`;
-      download(out, fname);
+      await download(out, fname);
 
       setStatus(ui.expDot, ui.expStatus, 'ok', 'Exported');
+      exported = true;
     }catch(e){
       console.error('Export failed', e);
       setStatus(ui.expDot, ui.expStatus, 'fail', e?.message || 'Export failed');
     }
-    setTimeout(()=> setStatus(ui.expDot, ui.expStatus, 'idle','Idle'), 1800);
+    if (exported) setTimeout(()=> setStatus(ui.expDot, ui.expStatus, 'idle','Idle'), 1800);
   }
 
   // Export modal (custom)
@@ -429,6 +533,13 @@
     document.body.classList.add('modal-open');
     if (ui.exportAck) ui.exportAck.checked = false;
     if (ui.exportContinue) ui.exportContinue.disabled = true;
+    const unsafe = !!ui.passwordlessExport?.checked;
+    if (ui.exportWarningText) ui.exportWarningText.innerHTML = unsafe
+      ? 'This passwordless backup contains your Reddit account data <b>without encryption</b>.<br><br>Anyone who obtains it may be able to access your saved accounts. Never share or publicly upload it. You accept all potential security risks and full responsibility for using and storing this file.<br><br><b>Anti-scam notice:</b> I will never contact you or request this file, your password, cookies, or account data for support. Anyone asking for them may be a scammer impersonating support.'
+      : 'Your <code>.uSwitch</code> backup contains your saved account data.<br><br><b>Never share it.</b> Don’t upload it to Drive links, Discord, or public sites. If someone gets this file + your password, they can import your accounts.<br><br><b>Anti-scam notice:</b> I will never contact you or request this file, your password, cookies, or account data for support. Anyone asking for them may be a scammer impersonating support.';
+    if (ui.exportAckText) ui.exportAckText.textContent = unsafe
+      ? 'I understand the security risks and accept full responsibility.'
+      : 'I understand. I will not share the backup file.';
     ui.exportCancel?.focus();
   }
   function closeExportModal(){
@@ -475,12 +586,26 @@
     });
   }
 
+  ui.impFile?.addEventListener('change', async ()=>{
+    let passwordless = false;
+    try {
+      const file = ui.impFile.files?.[0];
+      if (file) passwordless = JSON.parse(await readText(file))?.header?.cipher === 'none';
+    } catch {}
+    if (ui.impPass) {
+      ui.impPass.disabled = passwordless;
+      if (passwordless) ui.impPass.value = '';
+    }
+    if (ui.impEye) ui.impEye.disabled = passwordless;
+    if (ui.impPassLabel) ui.impPassLabel.textContent = passwordless ? 'Password (not required)' : 'Password';
+    if (ui.impSecurityHint) ui.impSecurityHint.textContent = passwordless
+      ? 'Passwordless backup detected. This file is unencrypted; no password is required.'
+      : 'Encrypted backups require their password.';
+  });
+
   async function decryptSelectedBackup(){
     const f = ui.impFile.files?.[0];
     if (!f) throw new Error('No file selected');
-
-    const pass = ui.impPass.value.trim();
-    if (!pass) throw new Error('Password required');
 
     const text = await readText(f);
 
@@ -489,9 +614,19 @@
     catch { throw new Error('File is not a valid uSwitch backup'); }
 
     const h = parsed.header;
-    if (!h || h.magic!=='USWITCH' || h.cipher!=='aes-gcm'){
+    if (!h || h.magic!=='USWITCH' || !['aes-gcm','none'].includes(h.cipher)){
       throw new Error('File is not a supported uSwitch backup');
     }
+
+    if (h.cipher === 'none'){
+      let obj;
+      try { obj = JSON.parse(dec.decode(b64d(parsed.data))); }
+      catch { throw new Error('Unencrypted backup contents are corrupted'); }
+      return obj;
+    }
+
+    const pass = ui.impPass.value.trim();
+    if (!pass) throw new Error('Password required');
 
     const keyBytes = await deriveKeyFromHeader(pass, h);
 
@@ -801,15 +936,33 @@
   async function saveCloseSetting(){
     try{
       await setState({ closeOnSwitch: !!ui.closeOnSwitch?.checked });
-      setStatus(ui.closeDot, ui.closeStatus, 'ok', 'Saved');
+      setStatus(ui.switchingDot, ui.switchingStatus, 'ok', 'Saved');
     }catch(e){
-      setStatus(ui.closeDot, ui.closeStatus, 'fail', e?.message || 'Save failed');
+      setStatus(ui.switchingDot, ui.switchingStatus, 'fail', e?.message || 'Save failed');
     }
-    setTimeout(()=> setStatus(ui.closeDot, ui.closeStatus, 'idle','Idle'), 1200);
+    setTimeout(()=> setStatus(ui.switchingDot, ui.switchingStatus, 'idle','Idle'), 1200);
   }
 
   ui.closeOnSwitch?.addEventListener('change', saveCloseSetting);
   await loadCloseSetting();
+
+  async function loadLoggedOutProfileSetting(){
+    const st = await getState(['showLoggedOutProfile']);
+    if (ui.showLoggedOutProfile) ui.showLoggedOutProfile.checked = !!st.showLoggedOutProfile;
+  }
+
+  async function saveLoggedOutProfileSetting(){
+    try{
+      await setState({ showLoggedOutProfile: !!ui.showLoggedOutProfile?.checked });
+      setStatus(ui.switchingDot, ui.switchingStatus, 'ok', 'Saved');
+    }catch(e){
+      setStatus(ui.switchingDot, ui.switchingStatus, 'fail', e?.message || 'Save failed');
+    }
+    setTimeout(()=> setStatus(ui.switchingDot, ui.switchingStatus, 'idle','Idle'), 1200);
+  }
+
+  ui.showLoggedOutProfile?.addEventListener('change', saveLoggedOutProfileSetting);
+  await loadLoggedOutProfileSetting();
 
   /* ===================== Reload setting: active Reddit tab only ===================== */
   async function loadReloadSetting(){
@@ -820,15 +973,34 @@
   async function saveReloadSetting(){
     try{
       await setState({ reloadActiveTabOnly: !!ui.reloadActiveTabOnly?.checked });
-      setStatus(ui.reloadDot, ui.reloadStatus, 'ok', 'Saved');
+      setStatus(ui.switchingDot, ui.switchingStatus, 'ok', 'Saved');
     }catch(e){
-      setStatus(ui.reloadDot, ui.reloadStatus, 'fail', e?.message || 'Save failed');
+      setStatus(ui.switchingDot, ui.switchingStatus, 'fail', e?.message || 'Save failed');
     }
-    setTimeout(()=> setStatus(ui.reloadDot, ui.reloadStatus, 'idle','Idle'), 1200);
+    setTimeout(()=> setStatus(ui.switchingDot, ui.switchingStatus, 'idle','Idle'), 1200);
   }
 
   ui.reloadActiveTabOnly?.addEventListener('change', saveReloadSetting);
   await loadReloadSetting();
+
+  /* ===================== Redirect to Reddit home after switching ===================== */
+  async function loadRedirectSetting(){
+    const st = await getState(['redirectHomeOnSwitch']);
+    if (ui.redirectHomeOnSwitch) ui.redirectHomeOnSwitch.checked = !!st.redirectHomeOnSwitch;
+  }
+
+  async function saveRedirectSetting(){
+    try{
+      await setState({ redirectHomeOnSwitch: !!ui.redirectHomeOnSwitch?.checked });
+      setStatus(ui.switchingDot, ui.switchingStatus, 'ok', 'Saved');
+    }catch(e){
+      setStatus(ui.switchingDot, ui.switchingStatus, 'fail', e?.message || 'Save failed');
+    }
+    setTimeout(()=> setStatus(ui.switchingDot, ui.switchingStatus, 'idle','Idle'), 1200);
+  }
+
+  ui.redirectHomeOnSwitch?.addEventListener('change', saveRedirectSetting);
+  await loadRedirectSetting();
 
   /* ===================== Developer Tools: wipe all ===================== */
   async function wipeAll(){
