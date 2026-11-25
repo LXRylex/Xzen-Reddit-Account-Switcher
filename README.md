@@ -1,4 +1,4 @@
-![Untitled](https://github.com/user-attachments/assets/a2f2dd47-3083-4c22-907f-5f2e213b0de7)
+<img width="1200" height="300" alt="uSwitch-Reddit-Accounts" src="https://github.com/user-attachments/assets/f5ed2c26-53f9-4542-b637-b7cc41ab0b6d" />
 
 # uSwitch: Reddit Accounts
 > A simple browser extension that lets you switch between your Reddit accounts with a single click fastly & private.
@@ -17,12 +17,12 @@
 > 
 > Quick switch: Jump between accounts fastly **without re-logging in**
 
-## ⚙️ Features
-> 🗂 Session Manager: Rename saved accounts, Hide, Delete even re-Order them!
+## Features
+> Session Manager: Rename saved accounts, Hide, Delete even re-Order them!
 > 
-> 🌒 Dark UI: A clean dark theme for comfortable use.
+> Dark UI: A clean dark theme for comfortable use.
 > 
-> 🔑 Auto Encryption: Keys are auto-generated and securely stored.
+> Auto Encryption: Keys are auto-generated and securely stored.
 
 ## Installation:
 
